@@ -1,8 +1,8 @@
 class Sqlcipher < Formula
   desc "SQLite extension providing 256-bit AES encryption"
   homepage "https://www.zetetic.net/sqlcipher/"
-  url "https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.6.1.tar.gz"
-  sha256 "d8f9afcbc2f4b55e316ca4ada4425daf3d0b4aab25f45e11a802ae422b9f53a3"
+  url "https://github.com/sqlcipher/sqlcipher/archive/refs/tags/v4.8.0.tar.gz"
+  sha256 "fdfe1a18aca39879979eb2f2926f1d5721e821c99b605b215d71d05d8c80bc31"
   license "BSD-3-Clause"
   head "https://github.com/sqlcipher/sqlcipher.git", branch: "master"
 
@@ -28,8 +28,7 @@ class Sqlcipher < Formula
   def install
     args = %W[
       --prefix=#{prefix}
-      --enable-tempstore=yes
-      --with-crypto-lib=#{Formula["openssl@3"].opt_prefix}
+      --with-tempstore=yes
       --enable-load-extension
       --disable-tcl
     ]
@@ -42,9 +41,11 @@ class Sqlcipher < Formula
       -DSQLITE_ENABLE_FTS3_PARENTHESIS
       -DSQLITE_ENABLE_FTS5
       -DSQLITE_ENABLE_COLUMN_METADATA
+      -DSQLITE_EXTRA_INIT=sqlcipher_extra_init
+      -DSQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown
     ].join(" ")
     args << "CFLAGS=#{cflags}"
-
+    args << "LDFLAGS=-L#{Formula["openssl@3"].opt_lib} -lcrypto"
     args << "LIBS=-lm" if OS.linux?
 
     system "./configure", *args
@@ -62,7 +63,7 @@ class Sqlcipher < Formula
       select name from students order by age asc;
     SQL
 
-    names = shell_output("#{bin}/sqlcipher < #{path}").strip.split("\n")
+    names = shell_output("#{bin}/sqlite3 < #{path}").strip.split("\n")
     assert_equal %w[Sue Tim Bob], names
   end
 end
