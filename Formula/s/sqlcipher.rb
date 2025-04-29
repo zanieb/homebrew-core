@@ -18,6 +18,8 @@ class Sqlcipher < Formula
     sha256 cellar: :any_skip_relocation, x86_64_linux:   "1b698c95084d0ec890fc103429bb615a8c13c87bd13b6a29b246579feb5a0763"
   end
 
+  keg_only "it conflicts with `sqlite3`"
+
   depends_on "openssl@3"
 
   # Build scripts require tclsh. `--disable-tcl` only skips building extension
@@ -45,8 +47,8 @@ class Sqlcipher < Formula
       -DSQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown
     ].join(" ")
     args << "CFLAGS=#{cflags}"
-    args << "LDFLAGS=-L#{Formula["openssl@3"].opt_lib} -lcrypto"
-    args << "LIBS=-lm" if OS.linux?
+    args << "LDFLAGS=-lcrypto"
+    args << "LDFLAGS=-lcrypto -lm" if OS.linux?
 
     system "./configure", *args
     system "make"
